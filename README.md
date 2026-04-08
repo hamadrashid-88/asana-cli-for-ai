@@ -1,26 +1,25 @@
-```
-                                         ██████╗██╗     ██╗
-  █████╗ ███████╗ █████╗ ███╗   ██╗ █████╗    ██╔════╝██║     ██║
- ██╔══██╗██╔════╝██╔══██╗████╗  ██║██╔══██╗   ██║     ██║     ██║
- ███████║███████╗███████║██╔██╗ ██║███████║   ██║     ██║     ██║
- ██╔══██║╚════██║██╔══██║██║╚██╗██║██╔══██║   ██║     ██║     ██║
- ██║  ██║███████║██║  ██║██║ ╚████║██║  ██║   ╚██████╗███████╗██║
- ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═════╝╚══════╝╚═╝
-                  ⚡ f o r   A I   A g e n t s ⚡
-```
+<div align="center">
 
-<p align="center">
-  <strong>The zero-dependency Asana CLI built for AI coding agents.</strong><br>
-  Single file. No npm install. Just Node.js 18+ and your token.
-</p>
+<pre>
+ ___  ___  ___  _ __   ___        ___| (_)
+/ _ \/ __|/ _ \| '_ \ / _ \ ____ / __| | |
+|  _/\__ \ (_| | | | | (_| |____| (__| | |
+|_|  |___/\__,_|_| |_|\__,_|     \___|_|_|
+        ⚡  f o r   A I   A g e n t s  ⚡
+</pre>
 
-<p align="center">
-  <a href="#quick-start">Quick Start</a> •
-  <a href="#commands">Commands</a> •
-  <a href="#ai-agent-integration">AI Integration</a> •
-  <a href="#configuration">Configuration</a> •
-  <a href="https://github.com/hamadrashid-88/asana-cli-for-ai/blob/main/LICENSE">License</a>
-</p>
+<strong>The zero-dependency Asana CLI built for AI coding agents.</strong><br>
+Single file. No npm install. Just Node.js 18+ and your token.
+
+<br>
+
+<a href="#quick-start">Quick Start</a> •
+<a href="#commands">Commands</a> •
+<a href="#ai-agent-integration">AI Integration</a> •
+<a href="#configuration">Configuration</a> •
+<a href="https://github.com/hamadrashid-88/asana-cli-for-ai/blob/main/LICENSE">License</a>
+
+</div>
 
 ---
 
