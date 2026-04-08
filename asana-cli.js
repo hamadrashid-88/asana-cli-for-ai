@@ -37,49 +37,34 @@ if (!TOKEN) {
   process.exit(1);
 }
 
-// ─── Team Member Aliases ────────────────────────────────────────────────────
-const TEAM = {
-  me: "me",
-  hamad: "1206442081160871",
-  faisal: "1136056094711861",
-  khusro: "1206458674826901",
-  riaz: "1156170635901123",
-  levie: "383307722278343",
+// ─── Load config.json (team aliases, project/section shortcuts) ─────────────
+function loadConfig() {
+  const configPath = path.join(__dirname, "config.json");
+  if (!fs.existsSync(configPath)) {
+    return { team: { me: "me" }, projects: {}, sections: {}, priorities: {}, customFields: {} };
+  }
+  try {
+    return JSON.parse(fs.readFileSync(configPath, "utf-8"));
+  } catch (err) {
+    console.error(JSON.stringify({ error: `Failed to parse config.json: ${err.message}` }));
+    process.exit(1);
+  }
+}
+
+const CONFIG = loadConfig();
+const TEAM = CONFIG.team || { me: "me" };
+const SHORTCUTS = {
+  projects: CONFIG.projects || {},
+  sections: CONFIG.sections || {},
+  priorities: CONFIG.priorities || {},
+  customFields: CONFIG.customFields || {},
 };
 
 function resolveAssignee(input) {
   if (!input) return undefined;
   const lower = input.toLowerCase();
-  return TEAM[lower] || input; // return GID as-is if not an alias
+  return TEAM[lower] || input;
 }
-
-// ─── Known Projects & Sections (shortcuts) ──────────────────────────────────
-const SHORTCUTS = {
-  projects: {
-    "focused-tasks": "1213805562202634",
-    "group-admin": "1211543156683200",
-    "cloud-services": "1209131903275412",
-  },
-  sections: {
-    taaleem: "1213805786049881",
-    ens: "1213805786049878",
-    proptera: "1213805786049882",
-    "dental-id": "1213805786049887",
-    "garden-5": "1213805786049886",
-    cogeter: "1213805786049885",
-    leads: "1213807354346845",
-    completed: "1213816712237638",
-  },
-  priorities: {
-    low: "1206458100468640",
-    medium: "1206458100468641",
-    high: "1206458100468642",
-    urgent: "1213805562202646",
-  },
-  customFields: {
-    priority: "1206458100468639",
-  },
-};
 
 function resolveProject(input) {
   if (!input) return undefined;
@@ -393,11 +378,88 @@ function cmdAliases() {
   out({ team: TEAM, projects: SHORTCUTS.projects, sections: SHORTCUTS.sections, priorities: SHORTCUTS.priorities });
 }
 
+// --- setup (auto-generate config.json) ---
+async function cmdSetup() {
+  const ws = WORKSPACE;
+  if (!ws) {
+    return out({ error: "ASANA_WORKSPACE_GID not set in .env. Run 'workspaces' to find yours." });
+  }
+
+  const config = { team: { me: "me" }, projects: {}, sections: {}, priorities: {}, customFields: {} };
+
+  // 1. Fetch users → build team aliases from first names
+  const usersRes = await api(`/workspaces/${ws}/users?opt_fields=name,email`);
+  if (usersRes.data) {
+    const seen = new Set(["me"]);
+    for (const user of usersRes.data) {
+      const firstName = user.name.split(" ")[0].toLowerCase();
+      const alias = seen.has(firstName) ? user.name.toLowerCase().replace(/\s+/g, "-") : firstName;
+      if (!seen.has(alias)) {
+        config.team[alias] = user.gid;
+        seen.add(alias);
+      }
+    }
+  }
+
+  // 2. Fetch projects → build project aliases from slugified names
+  const projRes = await api(`/projects?workspace=${ws}&opt_fields=name&archived=false`);
+  if (projRes.data) {
+    for (const proj of projRes.data) {
+      const slug = proj.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      if (slug) config.projects[slug] = proj.gid;
+    }
+  }
+
+  // 3. Fetch sections for each project
+  for (const [slug, gid] of Object.entries(config.projects)) {
+    const secRes = await api(`/projects/${gid}/sections?opt_fields=name`);
+    if (secRes.data) {
+      for (const sec of secRes.data) {
+        const secSlug = sec.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+        if (secSlug && secSlug !== "untitled-section" && !config.sections[secSlug]) {
+          config.sections[secSlug] = sec.gid;
+        }
+      }
+    }
+  }
+
+  // 4. Try to find priority custom field
+  const cfRes = await api(`/workspaces/${ws}/custom_fields?opt_fields=name,enum_options.name,resource_subtype`);
+  if (cfRes.data) {
+    for (const cf of cfRes.data) {
+      if (cf.name.toLowerCase() === "priority" && cf.enum_options) {
+        config.customFields.priority = cf.gid;
+        for (const opt of cf.enum_options) {
+          const pSlug = opt.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+          if (pSlug) config.priorities[pSlug] = opt.gid;
+        }
+        break;
+      }
+    }
+  }
+
+  // Write config.json
+  const configPath = path.join(__dirname, "config.json");
+  fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + "\n");
+  out({
+    success: true,
+    message: "config.json generated successfully",
+    summary: {
+      team_members: Object.keys(config.team).length,
+      projects: Object.keys(config.projects).length,
+      sections: Object.keys(config.sections).length,
+      priorities: Object.keys(config.priorities).length,
+    },
+    config,
+  });
+}
+
 // --- help ---
 function cmdHelp() {
   out({
     usage: "node asana-cli.js <command> [subcommand] [options]",
     commands: {
+      setup: "Auto-generate config.json with team, project, and section aliases",
       "my-tasks": "List your incomplete tasks. Flags: --all, --fields, --workspace",
       "task get <gid>": "Get task details",
       "task create": "Create task. Flags: --name, --project, --assignee, --due, --priority, --section, --notes",
@@ -443,6 +505,8 @@ async function main() {
     switch (cmd) {
       case "help":
         return cmdHelp();
+      case "setup":
+        return await cmdSetup();
       case "workspaces":
         return await cmdWorkspaces();
       case "my-tasks":

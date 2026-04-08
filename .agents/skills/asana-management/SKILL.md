@@ -13,7 +13,20 @@ Manage Asana tasks, projects, sections, and team assignments using the Asana CLI
 node C:\Users\Gaming\Documents\Code-Repos\asana-cli\asana-cli.js <command> [options]
 ```
 
+> **Note:** Update the path above if the CLI is cloned to a different location.
+
 All output is **JSON**. Parse it to present clean results to the user.
+
+## Discovery-First Workflow
+
+The CLI supports optional shortcuts via `config.json`, but you should always **discover dynamically** when you don't know a GID:
+
+1. **Find users:** `node <cli> users` → returns names, emails, and GIDs
+2. **Find projects:** `node <cli> project list` → returns project names and GIDs
+3. **Find sections:** `node <cli> project sections <PROJECT_GID>` → returns section names and GIDs
+4. **Check shortcuts:** `node <cli> aliases` → shows any configured team/project/section aliases
+
+Use GIDs directly when aliases aren't configured. The CLI accepts both aliases and raw GIDs everywhere.
 
 ## Quick Reference
 
@@ -23,12 +36,12 @@ All output is **JSON**. Parse it to present clean results to the user.
 |---|---|
 | List my tasks | `node <cli> my-tasks` |
 | Get task details | `node <cli> task get <GID>` |
-| Create a task | `node <cli> task create --name="..." --project=focused-tasks --assignee=me --due=YYYY-MM-DD --priority=high --section=taaleem` |
+| Create a task | `node <cli> task create --name="..." --project=<GID> --assignee=me --due=YYYY-MM-DD --priority=<GID>` |
 | Update a task | `node <cli> task update <GID> --completed=true` |
 | Delete a task | `node <cli> task delete <GID>` |
 | Add comment | `node <cli> task comment <GID> --text="..."` |
-| Create subtask | `node <cli> task subtask <GID> --name="..." --assignee=faisal` |
-| Move to section | `node <cli> task move <GID> --section=taaleem` |
+| Create subtask | `node <cli> task subtask <GID> --name="..." --assignee=<GID>` |
+| Move to section | `node <cli> task move <GID> --section=<GID>` |
 | List projects | `node <cli> project list` |
 | List sections | `node <cli> project sections <PROJECT_GID>` |
 | List project tasks | `node <cli> project tasks <PROJECT_GID>` |
@@ -36,61 +49,32 @@ All output is **JSON**. Parse it to present clean results to the user.
 | List users | `node <cli> users` |
 | Show aliases | `node <cli> aliases` |
 
-### Team Member Aliases
-
-Use these names instead of GIDs for `--assignee`:
-
-| Alias | Name | GID |
-|---|---|---|
-| `me` / `hamad` | Hamad Rashid | 1206442081160871 |
-| `faisal` | Faisal Ashraf | 1136056094711861 |
-| `khusro` | Khusro Khan | 1206458674826901 |
-| `riaz` | Riaz Ali Khan | 1156170635901123 |
-| `levie` | Levie Nacional | 383307722278343 |
-
-### Project Shortcuts
-
-| Shortcut | Project |
-|---|---|
-| `focused-tasks` | Focused Tasks |
-| `group-admin` | Group Admin |
-| `cloud-services` | Cloud Services Management AWS |
-
-### Section Shortcuts (Focused Tasks)
-
-| Shortcut | Section |
-|---|---|
-| `taaleem` | Taaleem |
-| `ens` | ENS |
-| `proptera` | Proptera |
-| `dental-id` | Dental ID |
-| `garden-5` | Garden 5 |
-| `cogeter` | Cogeter |
-| `leads` | Leads |
-| `completed` | Completed |
-
-### Priority Levels
-
-Use `--priority=` with: `low`, `medium`, `high`, `urgent`
-
 ## Auto-Run Policy
 
-Per user rules:
 - **Safe to auto-run** (read-only): `my-tasks`, `task get`, `task subtasks`, `task stories`, `project list`, `project sections`, `project tasks`, `search`, `users`, `aliases`, `workspaces`
 - **Requires approval** (writes): `task create`, `task update`, `task delete`, `task comment`, `task subtask`, `task move`, `task add-project`, `task deps`, `section create`
 
 ## Workflow Examples
 
-### Create a task with priority in a section
-```
-node <cli> task create --name="Follow up with client" --project=focused-tasks --assignee=me --due=2026-04-10 --priority=high --section=taaleem
+### First-time discovery
+```bash
+# 1. Find your workspace users
+node <cli> users
+
+# 2. List projects to get GIDs
+node <cli> project list
+
+# 3. List sections for a specific project
+node <cli> project sections <PROJECT_GID>
 ```
 
-### Bulk operations
-Run multiple read commands with `SafeToAutoRun: true`, then write commands sequentially with approval.
+### Create a task
+```bash
+node <cli> task create --name="Follow up with client" --project=<PROJECT_GID> --assignee=me --due=2026-04-10 --section=<SECTION_GID>
+```
 
 ### Error handling
 If a command returns `{"error": ...}`, check:
 1. Is the GID correct? Use `search` or `project tasks` to find it.
-2. Is the assignee alias valid? Use `aliases` to check.
+2. Is the assignee correct? Use `users` to find GIDs, or `aliases` for shortcuts.
 3. Is the token valid? The error message will indicate auth issues.

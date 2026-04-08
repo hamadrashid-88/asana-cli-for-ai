@@ -1,194 +1,192 @@
-# Asana CLI
+# Asana CLI for AI
 
-A lightweight, zero-dependency command-line interface for Asana — built for AI-assisted workflows with [Antigravity](https://gemini.google.com).
+A lightweight, zero-dependency CLI for [Asana](https://asana.com) — purpose-built for AI coding agents and automation.
 
-No `npm install` required. Just Node.js 18+ and your Asana Personal Access Token.
-
----
-
-## Quick Start
-
-### 1. Clone the repo
-
-```bash
-git clone <repo-url>
-cd asana-cli
-```
-
-### 2. Create your `.env` file
-
-```bash
-cp .env.example .env
-```
-
-Open `.env` and paste your **Personal Access Token**:
-
-```env
-ASANA_ACCESS_TOKEN=your_token_here
-ASANA_WORKSPACE_GID=1206442218701962
-```
-
-> **How to get your token:**
-> 1. Go to [Asana Developer Console](https://app.asana.com/0/developer-console)
-> 2. Click **Personal access tokens** → **Create new token**
-> 3. Give it a name (e.g., "CLI") and copy the token
-> 4. Paste it into your `.env` file
-
-### 3. Test it
+**Single file. No `npm install`. Just Node.js 18+ and your Asana token.**
 
 ```bash
 node asana-cli.js my-tasks
 ```
 
-You should see a JSON array of your open tasks. Done. ✅
+```json
+[
+  { "gid": "123456", "name": "Review pull request", "due_on": "2026-04-10", "completed": false },
+  { "gid": "789012", "name": "Deploy to staging", "due_on": null, "completed": false }
+]
+```
 
 ---
 
-## Usage
+## Why This Exists
 
-```
-node asana-cli.js <command> [subcommand] [options]
+Most Asana integrations are either heavyweight MCP servers that eat your AI's context window, or bloated npm packages with dozens of dependencies. This is neither.
+
+- **Zero dependencies** — uses native `fetch` (Node 18+), no `node_modules`
+- **JSON-only output** — designed for AI agents to parse, not humans to read
+- **Single file** — one `asana-cli.js`, nothing to build or compile
+- **Auto-setup** — one command generates all your workspace aliases
+- **AI Skill integration** — ships with a portable `SKILL.md` for AI coding assistants
+
+---
+
+## Quick Start
+
+### 1. Clone & configure
+
+```bash
+git clone https://github.com/<your-account>/asana-cli.git
+cd asana-cli
+cp .env.example .env
 ```
 
-### Task Commands
+Add your credentials to `.env`:
+
+```env
+ASANA_ACCESS_TOKEN=your_token_here
+ASANA_WORKSPACE_GID=your_workspace_gid
+```
+
+> **Get your token:** [Asana Developer Console](https://app.asana.com/0/developer-console) → Personal access tokens → Create new token
+>
+> **Find your workspace GID:** Set your token first, then run `node asana-cli.js workspaces`
+
+### 2. Auto-setup aliases
+
+```bash
+node asana-cli.js setup
+```
+
+This auto-discovers your workspace and generates `config.json` with:
+- **Team aliases** — use `--assignee=alice` instead of `--assignee=1234567890`
+- **Project shortcuts** — use `--project=my-project` instead of raw GIDs
+- **Section shortcuts** — use `--section=backlog` instead of raw GIDs
+- **Priority levels** — auto-detected from your custom fields
+
+### 3. Done
+
+```bash
+node asana-cli.js my-tasks          # List your open tasks
+node asana-cli.js search --text="bug"  # Search across tasks
+node asana-cli.js aliases           # View your configured shortcuts
+```
+
+---
+
+## Commands
+
+### Tasks
 
 | Command | Description |
 |---|---|
-| `my-tasks` | List your incomplete tasks (`--all` for completed too) |
+| `my-tasks` | List your incomplete tasks (`--all` for completed) |
 | `task get <GID>` | Get full task details |
-| `task create --name="..." --project=X` | Create a new task |
-| `task update <GID> --completed=true` | Update a task |
+| `task create --name="..."` | Create a new task |
+| `task update <GID>` | Update a task (`--completed=true`, `--due=YYYY-MM-DD`, etc.) |
 | `task delete <GID>` | Delete a task permanently |
 | `task comment <GID> --text="..."` | Add a comment |
 | `task subtask <GID> --name="..."` | Create a subtask |
 | `task subtasks <GID>` | List subtasks |
-| `task move <GID> --section=taaleem` | Move task to a section |
-| `task stories <GID>` | View task comments/activity |
-| `task add-project <GID> --project=X` | Add task to another project |
-| `task deps <GID> --on=gid1,gid2` | Set task dependencies |
+| `task move <GID> --section=<alias>` | Move task to a section |
+| `task stories <GID>` | View task activity/comments |
+| `task add-project <GID> --project=<alias>` | Add task to a project |
+| `task deps <GID> --on=gid1,gid2` | Set dependencies |
 
-### Project Commands
+### Projects
 
 | Command | Description |
 |---|---|
-| `project list` | List all projects (`--archived=true` to include archived) |
+| `project list` | List all projects |
 | `project get <GID>` | Get project details |
-| `project sections <GID>` | List sections in a project |
-| `project tasks <GID>` | List tasks in a project (`--all` for completed too) |
-| `section create --project=X --name="..."` | Create a new section |
+| `project sections <GID>` | List sections |
+| `project tasks <GID>` | List tasks (`--all` for completed) |
+| `section create --project=<GID> --name="..."` | Create a section |
 
-### Other Commands
+### Discovery & Search
 
 | Command | Description |
 |---|---|
-| `search --text="keyword"` | Search tasks (filters: `--assignee`, `--project`, `--section`, `--completed`, `--due_before`, `--due_after`) |
+| `search --text="..."` | Search tasks (+ `--assignee`, `--project`, `--section`, `--completed`, `--due_before`, `--due_after`) |
 | `users` | List workspace members |
 | `workspaces` | List available workspaces |
-| `aliases` | Show all shortcuts (team, projects, sections, priorities) |
-| `help` | Show the full command reference |
-
----
-
-## Shortcuts
-
-Instead of remembering GIDs, use these built-in aliases:
-
-### Team Members (`--assignee=`)
-
-| Alias | Name |
-|---|---|
-| `me` | Yourself |
-| `hamad` | Hamad Rashid |
-| `faisal` | Faisal Ashraf |
-| `khusro` | Khusro Khan |
-| `riaz` | Riaz Ali Khan |
-| `levie` | Levie Nacional |
-
-### Projects (`--project=`)
-
-| Alias | Project |
-|---|---|
-| `focused-tasks` | Focused Tasks |
-| `group-admin` | Group Admin |
-| `cloud-services` | Cloud Services Management AWS |
-
-### Sections (`--section=`)
-
-| Alias | Section (Focused Tasks) |
-|---|---|
-| `taaleem` | Taaleem |
-| `ens` | ENS |
-| `proptera` | Proptera |
-| `dental-id` | Dental ID |
-| `garden-5` | Garden 5 |
-| `cogeter` | Cogeter |
-| `leads` | Leads |
-| `completed` | Completed |
-
-### Priority (`--priority=`)
-
-`low` · `medium` · `high` · `urgent`
+| `aliases` | Show configured shortcuts |
+| `setup` | Auto-generate `config.json` from workspace |
+| `help` | Full command reference |
 
 ---
 
 ## Examples
 
-**Create a high-priority task in the Taaleem section:**
 ```bash
-node asana-cli.js task create --name="Review API docs" --project=focused-tasks --assignee=me --due=2026-04-15 --priority=high --section=taaleem
-```
+# Create a high-priority task
+node asana-cli.js task create \
+  --name="Fix auth bug" \
+  --project=my-project \
+  --assignee=me \
+  --due=2026-04-15 \
+  --priority=high \
+  --section=backlog
 
-**Search for tasks assigned to Faisal:**
-```bash
-node asana-cli.js search --assignee=faisal --project=focused-tasks
-```
+# Find tasks assigned to a team member
+node asana-cli.js search --assignee=alice --project=my-project
 
-**Mark a task as complete:**
-```bash
+# Mark a task done
 node asana-cli.js task update 1234567890 --completed=true
-```
 
-**Add a comment to a task:**
-```bash
-node asana-cli.js task comment 1234567890 --text="Done — deployed to production."
+# Add a comment
+node asana-cli.js task comment 1234567890 --text="Deployed to staging ✅"
 ```
 
 ---
 
-## Antigravity AI Integration
+## AI Agent Integration
 
-This CLI is designed to be used by AI coding assistants via the **Skill** system. The skill file teaches the AI how to call the CLI on your behalf.
+This CLI is designed to be called by AI coding assistants. It ships with a `SKILL.md` file that teaches AI agents how to use it.
 
 ### Setup for any project
 
-1. Copy the skill folder into your project:
-
-```
-your-project/
-└── .agents/
-    └── skills/
-        └── asana-management/
-            └── SKILL.md
-```
-
-2. Copy `SKILL.md` from this repo:
+Copy the skill into your project's agent directory:
 
 ```bash
-# From your project root
 mkdir -p .agents/skills/asana-management
-cp C:\Users\Gaming\Documents\Code-Repos\asana-cli\.agents\skills\asana-management\SKILL.md .agents/skills/asana-management/SKILL.md
+cp /path/to/asana-cli/.agents/skills/asana-management/SKILL.md \
+   .agents/skills/asana-management/SKILL.md
 ```
 
-3. That's it. The AI will now detect the skill and use the CLI automatically when you ask about tasks, assignments, or projects.
+Update the CLI path inside `SKILL.md` to match your installation. The AI will auto-detect the skill and start managing your Asana tasks.
 
-> **Note:** The skill references the CLI at its absolute path (`C:\Users\Gaming\Documents\Code-Repos\asana-cli\asana-cli.js`). If you cloned the repo to a different location, update the path in `SKILL.md`.
+### How it works
+
+1. You say *"show me my tasks"* or *"create a task for the auth bug"*
+2. The AI reads `SKILL.md`, discovers available commands
+3. It runs the CLI, parses the JSON output, and presents clean results
+4. Write operations require your approval; reads auto-execute
 
 ---
 
-## Requirements
+## Configuration
 
-- **Node.js 18+** (uses native `fetch`, no dependencies)
-- **Asana Personal Access Token** (free, from the developer console)
+### `.env` — Credentials (required, git-ignored)
+
+```env
+ASANA_ACCESS_TOKEN=your_personal_access_token
+ASANA_WORKSPACE_GID=your_workspace_gid
+```
+
+### `config.json` — Shortcuts (optional, git-ignored)
+
+Generated automatically by `node asana-cli.js setup`. Structure:
+
+```json
+{
+  "team": { "me": "me", "alice": "1234567890" },
+  "projects": { "my-project": "1111111111" },
+  "sections": { "backlog": "2222222222", "done": "3333333333" },
+  "priorities": { "low": "4444", "medium": "5555", "high": "6666", "urgent": "7777" },
+  "customFields": { "priority": "8888888888" }
+}
+```
+
+The CLI works without `config.json` — you just use raw GIDs instead of aliases.
 
 ---
 
@@ -196,13 +194,24 @@ cp C:\Users\Gaming\Documents\Code-Repos\asana-cli\.agents\skills\asana-managemen
 
 ```
 asana-cli/
-├── asana-cli.js          # The CLI tool (single file, zero deps)
+├── asana-cli.js          # CLI (single file, zero deps)
 ├── .env                  # Your credentials (git-ignored)
-├── .env.example          # Template for new users
-├── .gitignore            # Excludes node_modules/ and .env
-├── README.md             # This file
+├── .env.example          # Credential template
+├── config.json           # Your shortcuts (git-ignored, auto-generated)
+├── config.example.json   # Shortcut template
+├── .gitignore
+├── README.md
 └── .agents/
     └── skills/
         └── asana-management/
             └── SKILL.md  # AI skill definition
 ```
+
+## Requirements
+
+- **Node.js 18+** (uses native `fetch`)
+- **Asana Personal Access Token** ([free](https://app.asana.com/0/developer-console))
+
+## License
+
+MIT
