@@ -10,7 +10,7 @@ Manage Asana tasks, projects, sections, and team assignments using the Asana CLI
 ## CLI Location
 
 ```
-node C:\Users\Gaming\Documents\Code-Repos\asana-cli\asana-cli.js <command> [options]
+node /path/to/asana-cli/asana-cli.js <command> [options]
 ```
 
 > **Note:** Update the path above if the CLI is cloned to a different location.
