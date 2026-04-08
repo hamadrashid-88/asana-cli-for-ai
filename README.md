@@ -19,7 +19,7 @@
   <a href="#commands">Commands</a> •
   <a href="#ai-agent-integration">AI Integration</a> •
   <a href="#configuration">Configuration</a> •
-  <a href="https://github.com/hamadrashid-88/asana-cli/blob/main/LICENSE">License</a>
+  <a href="https://github.com/hamadrashid-88/asana-cli-for-ai/blob/main/LICENSE">License</a>
 </p>
 
 ---
@@ -79,7 +79,7 @@ $ node asana-cli.js setup
 ### 1. Clone & configure
 
 ```bash
-git clone https://github.com/hamadrashid-88/asana-cli.git
+git clone https://github.com/hamadrashid-88/asana-cli-for-ai.git
 cd asana-cli
 cp .env.example .env
 ```
