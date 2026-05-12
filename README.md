@@ -188,9 +188,14 @@ This CLI ships with a portable `SKILL.md` — a file that teaches AI coding agen
 ### Setup for any project
 
 ```bash
-# Copy the skill into your project
+# Copy the skill into your project (Claude Code)
+mkdir -p .claude/skills/asana-management
+cp /path/to/asana-cli/.claude/skills/asana-management/SKILL.md \
+   .claude/skills/asana-management/SKILL.md
+
+# Or for Antigravity / Gemini agents
 mkdir -p .agents/skills/asana-management
-cp /path/to/asana-cli/.agents/skills/asana-management/SKILL.md \
+cp /path/to/asana-cli/.claude/skills/asana-management/SKILL.md \
    .agents/skills/asana-management/SKILL.md
 ```
 
@@ -249,10 +254,10 @@ asana-cli/
 ├── config.example.json    # Shortcut template
 ├── .gitignore
 ├── README.md
-└── .agents/
+└── .claude/
     └── skills/
         └── asana-management/
-            └── SKILL.md   # AI skill definition
+            └── SKILL.md   # AI skill definition (Claude Code)
 ```
 
 ## Requirements
